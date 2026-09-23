@@ -52,17 +52,39 @@ def semaforo_view(fk_sectores):
     semaforo_df = semaforo_df.sort_values("orden")
 
     st.subheader("Semáforo de cumplimiento de metas")
-    cols = st.columns(len(semaforo_df)) if len(semaforo_df) else []
-    for col, (_, row) in zip(cols, semaforo_df.iterrows()):
-        with col:
-            with st.container(border=True):
-                st.markdown(f"### {ESTADO_EMOJI.get(row['estado'], '⚪')} {row['sector']}")
-                st.metric(
-                    label="Cumplimiento de meta",
-                    value=f"{row['porcentaje']}%" if row["porcentaje"] is not None else "s/d",
-                )
-                st.caption(mensaje_estado(row))
-                st.caption(f"Real: ${row['venta_real']:,.0f}  ·  Meta: ${row['meta_venta']:,.0f}")
+
+    tabla = semaforo_df.copy()
+    tabla["Estado"] = tabla["estado"].map(ESTADO_EMOJI).fillna("⚪") + " " + tabla["estado"].str.capitalize()
+    tabla["Diferencia"] = tabla.apply(mensaje_estado, axis=1)
+    tabla = tabla.rename(
+        columns={
+            "sector": "Sector",
+            "porcentaje": "% Cumplimiento",
+            "venta_real": "Venta real ($)",
+            "meta_venta": "Meta ($)",
+        }
+    )[["Sector", "Estado", "% Cumplimiento", "Diferencia", "Venta real ($)", "Meta ($)"]]
+
+    COLOR_FILA = {
+        "verde": "background-color: #d4edda; color: #155724",
+        "amarillo": "background-color: #fff3cd; color: #856404",
+        "rojo": "background-color: #f8d7da; color: #721c24",
+    }
+
+    def pintar_fila(fila):
+        estilo = COLOR_FILA.get(semaforo_df.loc[fila.name, "estado"], "")
+        return [estilo] * len(fila)
+
+    st.dataframe(
+        tabla.style.apply(pintar_fila, axis=1),
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "% Cumplimiento": st.column_config.NumberColumn(format="%.1f%%"),
+            "Venta real ($)": st.column_config.NumberColumn(format="$ %,.0f"),
+            "Meta ($)": st.column_config.NumberColumn(format="$ %,.0f"),
+        },
+    )
 
     if len(semaforo_df):
         fig = px.bar(
