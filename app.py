@@ -4,7 +4,7 @@ import plotly.express as px
 import db
 from auth import verify_login
 
-st.set_page_config(page_title="Tablero de Ventas", layout="wide")
+st.set_page_config(page_title="Tablero de Ventas Gamer", layout="wide")
 
 ESTADO_EMOJI = {"verde": "🟢", "amarillo": "🟡", "rojo": "🔴"}
 ESTADO_ORDEN = {"rojo": 0, "amarillo": 1, "verde": 2, "sin datos": 3}
@@ -14,7 +14,7 @@ if "user" not in st.session_state:
 
 
 def login_view():
-    st.title("Tablero de Ventas - Login")
+    st.title("Tablero de Ventas Gamer - Login")
     with st.form("login_form"):
         login = st.text_input("Usuario")
         password = st.text_input("Contraseña", type="password")
@@ -163,7 +163,7 @@ def main_view():
         st.session_state.user = None
         st.rerun()
 
-    st.title("Tablero de Ventas por Sector")
+    st.title("Tablero de Ventas Gamer por Categoría")
 
     if st.session_state.user["rol"] == "admin":
         tab1, tab2 = st.tabs(["Tablero", "Gestión de objetivos"])
