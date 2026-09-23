@@ -26,8 +26,8 @@ CREATE TABLE objetivo (
     fk_sector INTEGER NOT NULL REFERENCES dim_sector(id),
     periodo DATE NOT NULL,
     meta_venta NUMERIC(14,2) NOT NULL,
-    umbral_verde NUMERIC(5,2) NOT NULL DEFAULT 95.00,
-    umbral_amarillo NUMERIC(5,2) NOT NULL DEFAULT 80.00,
+    umbral_verde NUMERIC(5,2) NOT NULL DEFAULT 100.00,
+    umbral_amarillo NUMERIC(5,2) NOT NULL DEFAULT 90.00,
     UNIQUE (fk_sector, periodo)
 );
 
