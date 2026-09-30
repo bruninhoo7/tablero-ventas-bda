@@ -18,8 +18,39 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 
+RETRO_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+.retro-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 1.1rem;
+    color: #39ff14;
+    text-shadow: 2px 2px 0 #ff00ff;
+    margin: 0;
+}
+</style>
+"""
+
+
+def header_view():
+    st.markdown(RETRO_CSS, unsafe_allow_html=True)
+    with st.container(border=True):
+        col_titulo, col_usuario = st.columns([3, 1])
+        with col_titulo:
+            st.markdown(
+                '<p class="retro-title">🎮 TABLERO DE VENTAS GAMER</p>', unsafe_allow_html=True
+            )
+        with col_usuario:
+            st.write(f"👤 {st.session_state.user['login']} ({st.session_state.user['rol']})")
+            if st.button("Cerrar sesión"):
+                st.session_state.user = None
+                st.rerun()
+
+
 def login_view():
-    st.title("Tablero de Ventas Gamer - Login")
+    st.markdown(RETRO_CSS, unsafe_allow_html=True)
+    st.markdown('<p class="retro-title">🎮 TABLERO DE VENTAS GAMER</p>', unsafe_allow_html=True)
+    st.subheader("Login")
     with st.form("login_form"):
         login = st.text_input("Usuario")
         password = st.text_input("Contraseña", type="password")
@@ -114,12 +145,7 @@ def gestion_objetivos_view():
 
 
 def main_view():
-    st.sidebar.write(f"Usuario: **{st.session_state.user['login']}** ({st.session_state.user['rol']})")
-    if st.sidebar.button("Cerrar sesión"):
-        st.session_state.user = None
-        st.rerun()
-
-    st.title("Tablero de Ventas Gamer por Categoría")
+    header_view()
 
     if st.session_state.user["rol"] == "admin":
         tab1, tab2 = st.tabs(["Semáforo", "Gestión de objetivos"])
