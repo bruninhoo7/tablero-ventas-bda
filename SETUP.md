@@ -46,7 +46,11 @@ cd "tablero_ventas"
 
 ```powershell
 cd "tablero_ventas"
-.\venv\Scripts\streamlit.exe run app.py
+.\venv\Scripts\python.exe -m streamlit run app.py
 ```
 
 Se abre automáticamente en `http://localhost:8501`.
+
+> Nota: usá siempre `python -m streamlit`, no `.\venv\Scripts\streamlit.exe` directo — ese ejecutable
+> guarda adentro la ruta exacta donde se creó el entorno virtual, y si alguna vez movés o renombrás
+> la carpeta del proyecto, deja de funcionar. `python -m streamlit` no tiene ese problema.
