@@ -18,28 +18,27 @@ if "user" not in st.session_state:
     st.session_state.user = None
 
 
-RETRO_CSS = """
+HEADER_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-.retro-title {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 1.1rem;
-    color: #39ff14;
-    text-shadow: 2px 2px 0 #ff00ff;
-    margin: 0;
+.st-key-header_zone {
+    background-color: #1a1f3a;
+    border-radius: 8px;
+}
+[role="tablist"] {
+    background-color: #1a1f3a;
+    border-radius: 8px;
+    padding: 0.25rem 0.75rem;
 }
 </style>
 """
 
 
 def header_view():
-    st.markdown(RETRO_CSS, unsafe_allow_html=True)
-    with st.container(border=True):
+    st.markdown(HEADER_CSS, unsafe_allow_html=True)
+    with st.container(border=True, key="header_zone"):
         col_titulo, col_usuario = st.columns([3, 1])
         with col_titulo:
-            st.markdown(
-                '<p class="retro-title">🎮 TABLERO DE VENTAS GAMER</p>', unsafe_allow_html=True
-            )
+            st.markdown("## 🎮 Tablero de Ventas Gamer")
         with col_usuario:
             st.write(f"👤 {st.session_state.user['login']} ({st.session_state.user['rol']})")
             if st.button("Cerrar sesión"):
@@ -48,8 +47,7 @@ def header_view():
 
 
 def login_view():
-    st.markdown(RETRO_CSS, unsafe_allow_html=True)
-    st.markdown('<p class="retro-title">🎮 TABLERO DE VENTAS GAMER</p>', unsafe_allow_html=True)
+    st.title("Tablero de Ventas Gamer")
     st.subheader("Login")
     with st.form("login_form"):
         login = st.text_input("Usuario")
