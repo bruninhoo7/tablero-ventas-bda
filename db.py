@@ -43,30 +43,8 @@ def get_sectores() -> pd.DataFrame:
 
 def get_periodos() -> pd.DataFrame:
     return pd.read_sql(
-        "SELECT id, fecha, mes, trimestre, anio FROM dim_tiempo ORDER BY fecha", get_engine()
+        "SELECT DISTINCT periodo AS fecha FROM objetivo ORDER BY fecha", get_engine()
     )
-
-
-def get_ventas(fk_sectores=None, fecha_desde=None, fecha_hasta=None) -> pd.DataFrame:
-    query = """
-        SELECT t.fecha, t.anio, t.trimestre, s.nombre AS sector, v.monto_vendido
-        FROM hecho_venta v
-        JOIN dim_tiempo t ON t.id = v.fk_tiempo
-        JOIN dim_sector s ON s.id = v.fk_sector
-        WHERE 1=1
-    """
-    params = {}
-    if fk_sectores:
-        query += " AND v.fk_sector = ANY(:sectores)"
-        params["sectores"] = fk_sectores
-    if fecha_desde:
-        query += " AND t.fecha >= :desde"
-        params["desde"] = fecha_desde
-    if fecha_hasta:
-        query += " AND t.fecha <= :hasta"
-        params["hasta"] = fecha_hasta
-    query += " ORDER BY t.fecha"
-    return pd.read_sql(text(query), get_engine(), params=params)
 
 
 def get_semaforo(periodo) -> pd.DataFrame:
@@ -74,7 +52,7 @@ def get_semaforo(periodo) -> pd.DataFrame:
     query = text(
         """
         SELECT
-            s.id AS fk_sector,
+            s.id AS sector_id,
             s.nombre AS sector,
             COALESCE(v.monto_vendido, 0) AS venta_real,
             o.meta_venta,
@@ -107,11 +85,11 @@ def get_semaforo(periodo) -> pd.DataFrame:
     return df
 
 
-def upsert_objetivo(fk_sector, periodo, meta_venta, umbral_verde, umbral_amarillo):
+def upsert_objetivo(sector_id, periodo, meta_venta, umbral_verde, umbral_amarillo):
     query = text(
         """
         INSERT INTO objetivo (fk_sector, periodo, meta_venta, umbral_verde, umbral_amarillo)
-        VALUES (:fk_sector, :periodo, :meta_venta, :umbral_verde, :umbral_amarillo)
+        VALUES (:sector_id, :periodo, :meta_venta, :umbral_verde, :umbral_amarillo)
         ON CONFLICT (fk_sector, periodo)
         DO UPDATE SET
             meta_venta = EXCLUDED.meta_venta,
@@ -123,7 +101,7 @@ def upsert_objetivo(fk_sector, periodo, meta_venta, umbral_verde, umbral_amarill
         conn.execute(
             query,
             {
-                "fk_sector": fk_sector,
+                "sector_id": sector_id,
                 "periodo": periodo,
                 "meta_venta": meta_venta,
                 "umbral_verde": umbral_verde,

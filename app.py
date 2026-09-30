@@ -1,5 +1,4 @@
 import streamlit as st
-import plotly.express as px
 
 import db
 from auth import verify_login
@@ -8,6 +7,12 @@ st.set_page_config(page_title="Tablero de Ventas Gamer", layout="wide")
 
 ESTADO_EMOJI = {"verde": "🟢", "amarillo": "🟡", "rojo": "🔴"}
 ESTADO_ORDEN = {"rojo": 0, "amarillo": 1, "verde": 2, "sin datos": 3}
+
+COLOR_FILA = {
+    "verde": "background-color: #d4edda; color: #155724",
+    "amarillo": "background-color: #fff3cd; color: #856404",
+    "rojo": "background-color: #f8d7da; color: #721c24",
+}
 
 if "user" not in st.session_state:
     st.session_state.user = None
@@ -37,7 +42,7 @@ def mensaje_estado(row) -> str:
     return f"{abs(diferencia):.1f}% por debajo de la meta"
 
 
-def semaforo_view(fk_sectores):
+def semaforo_view():
     periodos_df = db.get_periodos()
     periodo_sel = st.selectbox(
         "Período a evaluar",
@@ -46,12 +51,8 @@ def semaforo_view(fk_sectores):
     )
 
     semaforo_df = db.get_semaforo(periodo_sel)
-    if fk_sectores:
-        semaforo_df = semaforo_df[semaforo_df["fk_sector"].isin(fk_sectores)]
     semaforo_df["orden"] = semaforo_df["estado"].map(ESTADO_ORDEN)
     semaforo_df = semaforo_df.sort_values("orden")
-
-    st.subheader("Semáforo de cumplimiento de metas")
 
     tabla = semaforo_df.copy()
     tabla["Estado"] = tabla["estado"].map(ESTADO_EMOJI).fillna("⚪") + " " + tabla["estado"].str.capitalize()
@@ -65,16 +66,11 @@ def semaforo_view(fk_sectores):
         }
     )[["Sector", "Estado", "% Cumplimiento", "Diferencia", "Venta real ($)", "Meta ($)"]]
 
-    COLOR_FILA = {
-        "verde": "background-color: #d4edda; color: #155724",
-        "amarillo": "background-color: #fff3cd; color: #856404",
-        "rojo": "background-color: #f8d7da; color: #721c24",
-    }
-
     def pintar_fila(fila):
         estilo = COLOR_FILA.get(semaforo_df.loc[fila.name, "estado"], "")
         return [estilo] * len(fila)
 
+    st.subheader("Semáforo de cumplimiento de metas")
     st.dataframe(
         tabla.style.apply(pintar_fila, axis=1),
         use_container_width=True,
@@ -85,46 +81,6 @@ def semaforo_view(fk_sectores):
             "Meta ($)": st.column_config.NumberColumn(format="$ %,.0f"),
         },
     )
-
-    if len(semaforo_df):
-        fig = px.bar(
-            semaforo_df,
-            x="sector",
-            y=["venta_real", "meta_venta"],
-            barmode="group",
-            title="Venta real vs. meta por sector",
-            labels={"value": "Monto ($)", "variable": ""},
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-
-def tablero_view():
-    sectores_df = db.get_sectores()
-
-    st.sidebar.subheader("Filtros")
-    sectores_sel = st.sidebar.multiselect(
-        "Sector", options=sectores_df["nombre"], default=list(sectores_df["nombre"])
-    )
-    fk_sectores = sectores_df[sectores_df["nombre"].isin(sectores_sel)]["id"].tolist()
-
-    semaforo_view(fk_sectores)
-
-    with st.expander("Ver evolución histórica de ventas"):
-        periodos_df = db.get_periodos()
-        fecha_min, fecha_max = periodos_df["fecha"].min(), periodos_df["fecha"].max()
-        fecha_desde, fecha_hasta = st.slider(
-            "Rango de fechas",
-            min_value=fecha_min,
-            max_value=fecha_max,
-            value=(fecha_min, fecha_max),
-            format="MM/YYYY",
-        )
-        ventas_df = db.get_ventas(fk_sectores=fk_sectores, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta)
-        por_periodo = ventas_df.groupby(["fecha", "sector"], as_index=False)["monto_vendido"].sum()
-        fig = px.line(
-            por_periodo, x="fecha", y="monto_vendido", color="sector", title="Ventas por período"
-        )
-        st.plotly_chart(fig, use_container_width=True)
 
 
 def gestion_objetivos_view():
@@ -148,8 +104,8 @@ def gestion_objetivos_view():
         submitted = st.form_submit_button("Guardar objetivo")
 
     if submitted:
-        fk_sector = int(sectores_df[sectores_df["nombre"] == sector_nombre]["id"].iloc[0])
-        db.upsert_objetivo(fk_sector, periodo, meta_venta, umbral_verde, umbral_amarillo)
+        sector_id = int(sectores_df[sectores_df["nombre"] == sector_nombre]["id"].iloc[0])
+        db.upsert_objetivo(sector_id, periodo, meta_venta, umbral_verde, umbral_amarillo)
         st.success("Objetivo guardado correctamente.")
         st.rerun()
 
@@ -166,13 +122,13 @@ def main_view():
     st.title("Tablero de Ventas Gamer por Categoría")
 
     if st.session_state.user["rol"] == "admin":
-        tab1, tab2 = st.tabs(["Tablero", "Gestión de objetivos"])
+        tab1, tab2 = st.tabs(["Semáforo", "Gestión de objetivos"])
         with tab1:
-            tablero_view()
+            semaforo_view()
         with tab2:
             gestion_objetivos_view()
     else:
-        tablero_view()
+        semaforo_view()
 
 
 if st.session_state.user is None:

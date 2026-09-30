@@ -1,4 +1,5 @@
--- Esquema del Tablero de Ventas (BDA) - Grupo 3
+-- Esquema del Tablero de Ventas Gamer (modelo estrella)
+-- 5 tablas: dim_tiempo, dim_sector, hecho_venta, objetivo, usuario
 -- Ejecutar una sola vez contra la base "tablero_ventas"
 
 CREATE TABLE dim_tiempo (

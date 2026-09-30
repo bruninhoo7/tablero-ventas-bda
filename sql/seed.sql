@@ -1,4 +1,4 @@
--- seed.sql - Datos de ejemplo Tablero de Ventas (BDA) - Grupo 3
+-- seed.sql - Datos de ejemplo Tablero de Ventas Gamer
 -- Carga unica: dim_tiempo, dim_sector, hecho_venta, objetivo, usuario
 
 INSERT INTO dim_sector (nombre) VALUES
@@ -172,5 +172,5 @@ INSERT INTO objetivo (fk_sector, periodo, meta_venta, umbral_verde, umbral_amari
     ((SELECT id FROM dim_sector WHERE nombre = 'Perifericos'), '2025-09-01', 1200000, 100.00, 90.00);
 
 INSERT INTO usuario (login, password_hash, rol) VALUES
-    ('admin', '$2b$12$F/0Ti8WDQL.Cz0iATcnD3Om2JYrGMCn5orkrOH/vjd0ZoYRZABy8.', 'admin'),
-    ('lector', '$2b$12$/vc3Vrsc5qE5gRfjYoCIJuGqs2uCxOaIX2yJzWckIP5T44xF2iwQC', 'lector');
+    ('admin', '$2b$12$tPSqALiUH2Q8hkSp3cpjJOQabGoKg/ra8V0p/8qWgguJjB.YQCqoO', 'admin'),
+    ('lector', '$2b$12$EypEYX3A/FgtKaegldNOleS3/AHoTeTK1qsHyfw1CQVLM5rnSc5iG', 'lector');
